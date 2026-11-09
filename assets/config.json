@@ -1,7 +1,6 @@
 {
-  "app_name": "Web2APK",
-  "target_url": "https://example.com",
+  "app_name": "github",
+  "target_url": "https://github.com",
   "html_content": "",
-  "control_id": "",
-  "icon_url": ""
+  "control_id": "3cf30ed5cfc70ac8e20dcc36827bfcfc"
 }
